@@ -304,6 +304,14 @@ with st.container(border=True):
     with pf4:
         cities  = ["All"] + sorted(df["Property City"].dropna().unique().tolist())
         pf_city = st.selectbox("City", cities, key=f"pf_city_{ota_key}")
+    # FH ID multi-select
+    all_fh_ids = sorted(df["FH"].dropna().astype(str).str.strip().unique().tolist())
+    pf_fh_ids  = st.multiselect(
+        "Filter by FH ID",
+        options=all_fh_ids,
+        placeholder="Select one or more FH IDs...",
+        key=f"pf_fh_ids_{ota_key}",
+    )
 
 # ── Build filtered dataframe ───────────────────────────────────────────
 work_df = df.copy()
@@ -317,6 +325,8 @@ if pf_category != "All" and "Category (A/B/C)" in work_df.columns:
     work_df = work_df[work_df["Category (A/B/C)"] == pf_category]
 if pf_city != "All" and "Property City" in work_df.columns:
     work_df = work_df[work_df["Property City"] == pf_city]
+if pf_fh_ids:
+    work_df = work_df[work_df["FH"].astype(str).str.strip().isin(pf_fh_ids)]
 
 if pf_factor == "Any Pending":
     check_cols = all_check_cols
@@ -442,7 +452,7 @@ edited_count  = len([k for k, edits in st.session_state.row_edits.items() if edi
 total_edits   = sum(len(v) for v in st.session_state.row_edits.values())
 has_any_edits = total_edits > 0
 
-# ── Save / Refresh bar ABOVE the table ────────────────────────────────
+# ── Save / Refresh bar ABOVE the table ───────────────────────────────
 _sc1, _sc2, _sc3 = st.columns([2, 1.5, 6])
 with _sc1:
     save_clicked = st.button(
@@ -698,7 +708,7 @@ st.markdown('</div>', unsafe_allow_html=True)  # close .de-table-outer
 
 
 # ══════════════════════════════════════════════════════════════════════
-# SAVE LOGIC (triggered by button above the table)
+# SAVE LOGIC (button is above the table)
 # ══════════════════════════════════════════════════════════════════════
 if save_clicked and has_any_edits:
     ota_info = OTA_COLUMN_MAP.get(selected_ota, {})
