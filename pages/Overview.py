@@ -286,8 +286,11 @@ else:
     if pending_rem.empty:
         st.success("✅ All reminders resolved — no pending reminders!")
     else:
-        # Group by Username
+        # Group by Username — filter out rows where Username is numeric (corrupted entries)
         if "Username" in pending_rem.columns:
+            pending_rem = pending_rem.copy()
+            pending_rem["Username"] = pending_rem["Username"].astype(str).str.strip()
+            pending_rem = pending_rem[~pending_rem["Username"].str.match(r"^\d+$")]
             owner_grp = (pending_rem.groupby("Username")
                          .agg(
                              Pending=("Status", "count"),
