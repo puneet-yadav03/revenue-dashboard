@@ -299,23 +299,26 @@ else:
             # Cards for each owner
             n_owners = len(owner_grp)
             cols_per_row = min(n_owners, 4)
-            owner_cols = st.columns(cols_per_row)
-            for i, (_, row_o) in enumerate(owner_grp.iterrows()):
-                p = int(row_o["Pending"])
-                o_col = "#DC2626" if p > 5 else "#D97706" if p > 2 else "#059669"
-                o_bg  = "#FEE2E2" if p > 5 else "#FEF3C7" if p > 2 else "#D1FAE5"
-                with owner_cols[i % cols_per_row]:
-                    st.markdown(f"""
-                    <div style="background:{o_bg};border-radius:10px;padding:14px 12px;
-                                text-align:center;margin-bottom:8px;">
-                        <div style="font-size:13px;font-weight:700;color:{o_col};margin-bottom:4px;">
-                            {str(row_o.get('Owner') or row_o.get('Username') or 'Unknown').replace('.', ' ').title()}
-                        </div>
-                        <div style="font-size:28px;font-weight:800;color:{o_col};line-height:1.1;">
-                            {p}
-                        </div>
-                        <div style="font-size:11px;color:{o_col};margin-top:2px;">pending</div>
-                    </div>""", unsafe_allow_html=True)
+            if cols_per_row > 0:
+                owner_cols = st.columns(cols_per_row)
+                for i, (_, row_o) in enumerate(owner_grp.iterrows()):
+                    p = int(row_o["Pending"])
+                    o_col = "#DC2626" if p > 5 else "#D97706" if p > 2 else "#059669"
+                    o_bg  = "#FEE2E2" if p > 5 else "#FEF3C7" if p > 2 else "#D1FAE5"
+                    # FIX: safely convert Owner to string before calling .replace()
+                    owner_name = str(row_o.get("Owner", "")).replace('.', ' ').title()
+                    with owner_cols[i % cols_per_row]:
+                        st.markdown(f"""
+                        <div style="background:{o_bg};border-radius:10px;padding:14px 12px;
+                                    text-align:center;margin-bottom:8px;">
+                            <div style="font-size:13px;font-weight:700;color:{o_col};margin-bottom:4px;">
+                                {owner_name}
+                            </div>
+                            <div style="font-size:28px;font-weight:800;color:{o_col};line-height:1.1;">
+                                {p}
+                            </div>
+                            <div style="font-size:11px;color:{o_col};margin-top:2px;">pending</div>
+                        </div>""", unsafe_allow_html=True)
 
             st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
@@ -323,14 +326,21 @@ else:
             with st.expander("📋 View all pending reminders in detail"):
                 show_cols = [c for c in ["Username","FH ID","Property Name","Column","Value","Due Date","Created At"]
                              if c in pending_rem.columns]
-                st.dataframe(pending_rem[show_cols].sort_values("Username") if "Username" in show_cols
-                             else pending_rem[show_cols],
-                             use_container_width=True, hide_index=True)
+                # FIX: convert Username to string before sorting to avoid TypeError
+                sort_df = pending_rem[show_cols].copy()
+                if "Username" in show_cols:
+                    sort_df["Username"] = sort_df["Username"].astype(str)
+                    sort_df = sort_df.sort_values("Username")
+                st.dataframe(sort_df, use_container_width=True, hide_index=True)
 
                 # Also show per-owner breakdown with column detail
                 st.markdown("**Breakdown by Owner & Column:**")
                 if "Column" in pending_rem.columns:
-                    detail_grp = (pending_rem.groupby(["Username","Column"])
+                    # FIX: convert to string before groupby to avoid mixed type issues
+                    detail_df = pending_rem.copy()
+                    detail_df["Username"] = detail_df["Username"].astype(str)
+                    detail_df["Column"]   = detail_df["Column"].astype(str)
+                    detail_grp = (detail_df.groupby(["Username","Column"])
                                   .size().reset_index(name="Count")
                                   .sort_values(["Username","Count"], ascending=[True, False]))
                     st.dataframe(detail_grp, use_container_width=True, hide_index=True)
