@@ -56,6 +56,37 @@ html,body,[data-testid="stApp"]{font-family:'DM Sans',sans-serif!important;}
 #MainMenu,footer,header,[data-testid="stDecoration"]{display:none!important;}
 .block-container{padding:28px 32px 32px!important;max-width:100%!important;}
 
+/* ── LOCK SIDEBAR OPEN — hide collapse button & keep sidebar always visible ── */
+[data-testid="stSidebarCollapseButton"],
+button[data-testid="stSidebarCollapseButton"],
+[data-testid="collapsedControl"],
+button[kind="header"][aria-label="Close sidebar"],
+section[data-testid="stSidebar"] button[aria-label="Close sidebar"],
+section[data-testid="stSidebar"] > div > button,
+[data-testid="stSidebar"] > div > button:first-child {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Keep sidebar always expanded */
+section[data-testid="stSidebar"] {
+    transform: none !important;
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
+    left: 0 !important;
+    display: flex !important;
+    visibility: visible !important;
+}
+
+/* Hide the chevron arrow to expand/collapse on the main area edge */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] {
+    display: none !important;
+    visibility: hidden !important;
+}
+
 /* ── Hide Streamlit's auto-generated default page nav links ── */
 [data-testid="stSidebarNav"],
 [data-testid="stSidebarNavItems"],
