@@ -304,6 +304,14 @@ with st.container(border=True):
     with pf4:
         cities  = ["All"] + sorted(df["Property City"].dropna().unique().tolist())
         pf_city = st.selectbox("City", cities, key=f"pf_city_{ota_key}")
+    # FH ID multi-select filter
+    all_fh_ids = sorted(df["FH"].dropna().astype(str).str.strip().unique().tolist())
+    pf_fh_ids  = st.multiselect(
+        "Filter by FH ID",
+        options=all_fh_ids,
+        placeholder="Select one or more FH IDs...",
+        key=f"pf_fh_ids_{ota_key}",
+    )
 
 # ── Build filtered dataframe ───────────────────────────────────────────
 work_df = df.copy()
@@ -317,6 +325,8 @@ if pf_category != "All" and "Category (A/B/C)" in work_df.columns:
     work_df = work_df[work_df["Category (A/B/C)"] == pf_category]
 if pf_city != "All" and "Property City" in work_df.columns:
     work_df = work_df[work_df["Property City"] == pf_city]
+if pf_fh_ids:
+    work_df = work_df[work_df["FH"].astype(str).str.strip().isin(pf_fh_ids)]
 
 if pf_factor == "Any Pending":
     check_cols = all_check_cols
