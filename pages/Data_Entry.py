@@ -304,14 +304,6 @@ with st.container(border=True):
     with pf4:
         cities  = ["All"] + sorted(df["Property City"].dropna().unique().tolist())
         pf_city = st.selectbox("City", cities, key=f"pf_city_{ota_key}")
-    # FH ID multi-select filter
-    all_fh_ids = sorted(df["FH"].dropna().astype(str).str.strip().unique().tolist())
-    pf_fh_ids  = st.multiselect(
-        "Filter by FH ID",
-        options=all_fh_ids,
-        placeholder="Select one or more FH IDs...",
-        key=f"pf_fh_ids_{ota_key}",
-    )
 
 # ── Build filtered dataframe ───────────────────────────────────────────
 work_df = df.copy()
@@ -325,8 +317,6 @@ if pf_category != "All" and "Category (A/B/C)" in work_df.columns:
     work_df = work_df[work_df["Category (A/B/C)"] == pf_category]
 if pf_city != "All" and "Property City" in work_df.columns:
     work_df = work_df[work_df["Property City"] == pf_city]
-if pf_fh_ids:
-    work_df = work_df[work_df["FH"].astype(str).str.strip().isin(pf_fh_ids)]
 
 if pf_factor == "Any Pending":
     check_cols = all_check_cols
@@ -448,7 +438,25 @@ readonly_ota_cols = [c for c in ota_cols if c in REVIEW_RATING_COLS or c in PARA
 frozen_id_cols    = ["FH", "Property Name", "Property City"]
 extra_id_cols     = [c for c in id_cols if c not in frozen_id_cols and c in table_data.columns]
 
-edited_count = len([k for k, edits in st.session_state.row_edits.items() if edits])
+edited_count  = len([k for k, edits in st.session_state.row_edits.items() if edits])
+total_edits   = sum(len(v) for v in st.session_state.row_edits.values())
+has_any_edits = total_edits > 0
+
+# ── Save / Refresh bar ABOVE the table ────────────────────────────────
+_sc1, _sc2, _sc3 = st.columns([2, 1.5, 6])
+with _sc1:
+    save_clicked = st.button(
+        f"💾 Save Changes ({edited_count} {'property' if edited_count == 1 else 'properties'})",
+        type="primary",
+        disabled=not has_any_edits,
+        use_container_width=True,
+        key="global_save_btn",
+    )
+with _sc2:
+    if st.button("🔄 Refresh Data", key="de_refresh", use_container_width=True):
+        force_reload()
+        st.rerun()
+
 if edited_count:
     st.markdown(
         f'<div style="display:inline-flex;align-items:center;gap:8px;background:#EEF6FF;'
@@ -690,29 +698,8 @@ st.markdown('</div>', unsafe_allow_html=True)  # close .de-table-outer
 
 
 # ══════════════════════════════════════════════════════════════════════
-# SAVE CHANGES BUTTON
+# SAVE LOGIC (triggered by button above the table)
 # ══════════════════════════════════════════════════════════════════════
-st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-
-total_edits   = sum(len(v) for v in st.session_state.row_edits.values())
-has_any_edits = total_edits > 0
-
-save_col, refresh_col, _ = st.columns([2, 1.5, 6])
-
-with save_col:
-    save_clicked = st.button(
-        f"💾 Save Changes ({edited_count} {'property' if edited_count == 1 else 'properties'})",
-        type="primary",
-        disabled=not has_any_edits,
-        use_container_width=True,
-        key="global_save_btn",
-    )
-
-with refresh_col:
-    if st.button("🔄 Refresh Data", key="de_refresh", use_container_width=True):
-        force_reload()
-        st.rerun()
-
 if save_clicked and has_any_edits:
     ota_info = OTA_COLUMN_MAP.get(selected_ota, {})
     live_col = ota_info.get("live_col", "")
