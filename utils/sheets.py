@@ -28,9 +28,16 @@ USERS_SHEET_NAME = "Users"
 # ── Auth ──────────────────────────────────────────────────────────────
 @st.cache_resource
 def get_client():
-    creds = Credentials.from_service_account_file(
-        CREDENTIALS_PATH, scopes=SCOPES
-    )
+    try:
+        # Cloud deployment: read from Streamlit secrets
+        creds = Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"], scopes=SCOPES
+        )
+    except Exception:
+        # Local development: read from Credentials.json file
+        creds = Credentials.from_service_account_file(
+            CREDENTIALS_PATH, scopes=SCOPES
+        )
     return gspread.authorize(creds)
 
 
@@ -226,24 +233,30 @@ def _ensure_audit_sheet():
     ss = get_spreadsheet()
     try:
         return ss.worksheet(AUDIT_SHEET_NAME)
-    except gspread.WorksheetNotFound:
+    except Exception:
         ws = ss.add_worksheet(title=AUDIT_SHEET_NAME, rows=10000, cols=10)
-        ws.append_row(["Timestamp","Username","FH ID","Property Name","OTA","Column","Old Value","New Value","Remarks"])
+        ws.append_row(["Timestamp","Username","FH ID","Property Name","OTA","Column","Old Value","New Value","Action","Notes"])
         return ws
 
 
-def write_audit_log(username, fh_id, prop_name, ota, col_name, old_val, new_val, remarks=""):
+def write_audit_log(username, fh_id, prop_name, ota, col, old_val, new_val):
     ws = _ensure_audit_sheet()
-    ws.append_row([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), username, fh_id, prop_name, ota, col_name, old_val, new_val, remarks])
+    ws.append_row([
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        username, fh_id, prop_name, ota, col,
+        str(old_val), str(new_val), "Update", ""
+    ])
 
 
 @st.cache_data(ttl=60)
 def load_audit_log() -> pd.DataFrame:
+    _cols = ["Timestamp","Username","FH ID","Property Name","OTA","Column","Old Value","New Value","Action","Notes"]
     try:
-        ws = get_spreadsheet().worksheet(AUDIT_SHEET_NAME)
-        return pd.DataFrame(ws.get_all_records())
+        ws   = get_spreadsheet().worksheet(AUDIT_SHEET_NAME)
+        data = ws.get_all_records()
+        return pd.DataFrame(data) if data else pd.DataFrame(columns=_cols)
     except Exception:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=_cols)
 
 
 # ── Reminders ─────────────────────────────────────────────────────────
@@ -251,38 +264,43 @@ def _ensure_reminder_sheet():
     ss = get_spreadsheet()
     try:
         return ss.worksheet(REMINDER_SHEET_NAME)
-    except gspread.WorksheetNotFound:
-        ws = ss.add_worksheet(title=REMINDER_SHEET_NAME, rows=10000, cols=10)
-        ws.append_row(["Created At","Due Date","Username","FH ID","Property Name","Column","Value","Status","Resolved At"])
+    except Exception:
+        ws = ss.add_worksheet(title=REMINDER_SHEET_NAME, rows=10000, cols=8)
+        ws.append_row(["Timestamp","Username","FH ID","Property Name","Column","Value","Due Date","Status"])
         return ws
 
 
-def write_reminder(username, fh_id, prop_name, col_name, value):
+def write_reminder(username, fh_id, prop_name, col, value):
     ws = _ensure_reminder_sheet()
-    created  = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    due_date = (datetime.now().replace(hour=0,minute=0,second=0) + pd.Timedelta(days=7)).strftime("%Y-%m-%d")
-    ws.append_row([created, due_date, username, fh_id, prop_name, col_name, value, "Pending", ""])
+    ws.append_row([
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        username, fh_id, prop_name, col, str(value), "", "Pending"
+    ])
 
 
 @st.cache_data(ttl=60)
 def load_reminders() -> pd.DataFrame:
+    _cols = ["Timestamp","Username","FH ID","Property Name","Column","Value","Due Date","Status"]
     try:
-        ws = get_spreadsheet().worksheet(REMINDER_SHEET_NAME)
-        return pd.DataFrame(ws.get_all_records())
+        ws   = get_spreadsheet().worksheet(REMINDER_SHEET_NAME)
+        data = ws.get_all_records()
+        return pd.DataFrame(data) if data else pd.DataFrame(columns=_cols)
     except Exception:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=_cols)
 
 
-def resolve_reminder(row_num: int):
-    ws = _ensure_reminder_sheet()
-    ws.update_cell(row_num, 8, "Resolved")
-    ws.update_cell(row_num, 9, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    load_reminders.clear()
+def resolve_reminder(sheet_row: int):
+    ws = get_spreadsheet().worksheet(REMINDER_SHEET_NAME)
+    ws.update_cell(sheet_row, 8, "Resolved")
 
 
-# ── Save entry ────────────────────────────────────────────────────────
-def save_entry(row_index, fh_id, prop_name, username, ota, updates, old_values):
+# ── Save entry (main write + audit + reminder) ────────────────────────
+def save_entry(row_index: int, updates: dict, username: str,
+               fh_id: str, prop_name: str, ota: str,
+               old_values: dict | None = None) -> list:
     skipped = batch_update(row_index, updates)
+    if old_values is None:
+        old_values = {}
     for col, new_val in updates.items():
         if col in skipped: continue
         old_val = old_values.get(col, "")
