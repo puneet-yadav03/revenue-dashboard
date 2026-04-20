@@ -1,0 +1,99 @@
+/* ═══════════════════════════════════════════════════════
+   Revenue Audit Dashboard — Global Theme
+   Matches Figma design with light/dark mode support
+═══════════════════════════════════════════════════════ */
+
+/* ── Google Fonts ─────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── CSS Variables (Light Mode) ───────────────────────── */
+:root {
+  --bg-primary:      #F8F9FC;
+  --bg-secondary:    #FFFFFF;
+  --bg-sidebar:      #FFFFFF;
+  --bg-card:         #FFFFFF;
+  --bg-hover:        #F1F3F9;
+  --bg-active:       #EEF0FF;
+  --bg-tab-active:   #FFFFFF;
+  --bg-tab:          #F0F0F5;
+  --bg-input:        #F5F6FA;
+
+  --border:          #E8EAF0;
+  --border-light:    #F0F2F8;
+
+  --text-primary:    #1A1D2E;
+  --text-secondary:  #6B7280;
+  --text-muted:      #9CA3AF;
+  --text-sidebar:    #374151;
+
+  --accent:          #5B5FEF;
+  --accent-light:    #EEF0FF;
+  --accent-hover:    #4A4EDD;
+
+  --green:           #10B981;
+  --green-light:     #D1FAE5;
+  --green-text:      #065F46;
+  --red:             #EF4444;
+  --red-light:       #FEE2E2;
+  --red-text:        #991B1B;
+  --orange:          #F59E0B;
+  --orange-light:    #FEF3C7;
+  --orange-text:     #92400E;
+  --blue:            #3B82F6;
+  --blue-light:      #DBEAFE;
+  --purple:          #8B5CF6;
+  --purple-light:    #EDE9FE;
+  --teal:            #06B6D4;
+
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:   0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg:   0 8px 24px rgba(0,0,0,0.10);
+
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   18px;
+
+  --sidebar-w:   240px;
+  --topbar-h:    64px;
+  --font:        'DM Sans', sans-serif;
+  --font-mono:   'DM Mono', monospace;
+}
+
+/* ── Dark Mode Variables ──────────────────────────────── */
+[data-theme="dark"] {
+  --bg-primary:      #0F1117;
+  --bg-secondary:    #161B27;
+  --bg-sidebar:      #161B27;
+  --bg-card:         #1E2436;
+  --bg-hover:        #252B3B;
+  --bg-active:       #2A2F50;
+  --bg-tab-active:   #2A2F50;
+  --bg-tab:          #1E2436;
+  --bg-input:        #252B3B;
+
+  --border:          #2A3040;
+  --border-light:    #232838;
+
+  --text-primary:    #F1F3F9;
+  --text-secondary:  #9CA3AF;
+  --text-muted:      #6B7280;
+  --text-sidebar:    #CBD5E1;
+
+  --accent:          #6366F1;
+  --accent-light:    #2A2F50;
+  --accent-hover:    #7578F3;
+
+  --green-light:     #052E16;
+  --green-text:      #34D399;
+  --red-light:       #2D1515;
+  --red-text:        #FC8181;
+  --orange-light:    #2D1E08;
+  --orange-text:     #FCD34D;
+  --blue-light:      #1E2D4A;
+  --purple-light:    #2D1E4A;
+
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:   0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg:   0 8px 24px rgba(0,0,0,0.5);
+}

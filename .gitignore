@@ -1,0 +1,9 @@
+.env
+Credentials.json
+*.pyc
+__pycache__/
+.streamlit/secrets.toml
+*.egg-info/
+dist/
+build/
+.DS_Store
