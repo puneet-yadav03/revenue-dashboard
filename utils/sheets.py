@@ -486,7 +486,7 @@ def get_all_users_dict() -> dict:
         return USERS
 
 
-def add_user_sheet(username: str, password: str, role: str, otas: list) -> bool:
+def add_user_sheet(username: str, password: str, role: str, otas: list, email: str = "") -> bool:
     """Add new user. Returns False if username already exists."""
     ws       = _get_users_ws()
     all_vals = ws.get_all_values()
@@ -497,21 +497,26 @@ def add_user_sheet(username: str, password: str, role: str, otas: list) -> bool:
         username.strip().lower(), password, role,
         ",".join(otas), "active",
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        email.strip(),
     ])
     load_users_sheet.clear()
     return True
 
 
-def update_user_sheet(username: str, password: str, role: str, otas: list, status: str = "active") -> bool:
+def update_user_sheet(username: str, password: str, role: str, otas: list, status: str = "active", email: str = "") -> bool:
     """Update existing user by username."""
     ws       = _get_users_ws()
     all_vals = ws.get_all_values()
+    headers  = all_vals[0] if all_vals else []
     for i, row in enumerate(all_vals[1:], start=2):
         if row and str(row[0]).strip().lower() == username.strip().lower():
             ws.update_cell(i, 2, password)
             ws.update_cell(i, 3, role)
             ws.update_cell(i, 4, ",".join(otas))
             ws.update_cell(i, 5, status)
+            # Write email to col 7 if header exists, else append
+            if "Email ID" in headers:
+                ws.update_cell(i, headers.index("Email ID") + 1, email.strip())
             load_users_sheet.clear()
             return True
     return False
