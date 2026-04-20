@@ -309,7 +309,7 @@ else:
                     <div style="background:{o_bg};border-radius:10px;padding:14px 12px;
                                 text-align:center;margin-bottom:8px;">
                         <div style="font-size:13px;font-weight:700;color:{o_col};margin-bottom:4px;">
-                            {row_o['Owner'].replace('.', ' ').title()}
+                            {str(row_o.get('Owner') or row_o.get('Username') or 'Unknown').replace('.', ' ').title()}
                         </div>
                         <div style="font-size:28px;font-weight:800;color:{o_col};line-height:1.1;">
                             {p}
