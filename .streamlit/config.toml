@@ -9,6 +9,10 @@ font = "sans serif"
 [server]
 headless = true
 port = 8501
+headless = true
+
+[ui]
+hideSidebarNavigation = false
 
 [browser]
 gatherUsageStats = false
