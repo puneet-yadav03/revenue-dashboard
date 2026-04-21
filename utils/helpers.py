@@ -133,7 +133,8 @@ div[data-testid="stMultiSelect"]>label{
 .rad-card-subtitle{font-size:12px;color:var(--text-secondary);margin-bottom:16px;}
 
 /* metric card */
-.rad-metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm);height:100%;}
+.rad-metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm);height:100%;transition:all 0.25s ease;cursor:default;}
+.rad-metric-card:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 12px 32px rgba(91,95,239,0.15),0 4px 12px rgba(0,0,0,0.10);border-color:var(--accent);}
 .rad-metric-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .rad-metric-label{font-size:13px;font-weight:500;color:var(--text-secondary);}
 .rad-metric-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
