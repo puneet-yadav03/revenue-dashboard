@@ -70,7 +70,7 @@ DROPDOWNS = {
     "photos":     ["Check", "Not Done"],
     "amenities":  ["Check", "Less Amenities", "Not Live"],
     "fh_status":  ["Live", "Churned", "SoldOut"],
-    "compset":    ["Added", "Not added"],
+    "compset":    ["Check", "Not added"],
     "parallel":   ["Check", "Not Live"],
 }
 
