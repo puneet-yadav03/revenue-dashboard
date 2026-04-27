@@ -5,8 +5,15 @@ import streamlit as st
 import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
+
+# IST = UTC + 5:30
+_IST = timezone(timedelta(hours=5, minutes=30))
+
+def _now_ist() -> str:
+    """Return current IST time as a plain string Google Sheets won't auto-parse."""
+    return datetime.now(_IST).strftime("%Y-%m-%d %H:%M:%S")
 
 from utils.config import (
     SHEET_ID, WORKSHEET_NAME,
@@ -242,10 +249,10 @@ def _ensure_audit_sheet():
 def write_audit_log(username, fh_id, prop_name, ota, col, old_val, new_val):
     ws = _ensure_audit_sheet()
     ws.append_row([
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "'" + _now_ist(),   # leading apostrophe forces plain text in Sheets
         username, fh_id, prop_name, ota, col,
         str(old_val), str(new_val), "Update", ""
-    ])
+    ], value_input_option="RAW")
 
 
 @st.cache_data(ttl=60)
@@ -273,9 +280,9 @@ def _ensure_reminder_sheet():
 def write_reminder(username, fh_id, prop_name, col, value):
     ws = _ensure_reminder_sheet()
     ws.append_row([
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "'" + _now_ist(),   # leading apostrophe forces plain text in Sheets
         username, fh_id, prop_name, col, str(value), "", "Pending"
-    ])
+    ], value_input_option="RAW")
 
 
 @st.cache_data(ttl=60)
@@ -329,8 +336,9 @@ def write_task(title, description, priority, assigned_to, created_by):
     existing = ws.get_all_records()
     task_id  = f"T{len(existing)+1:04d}"
     ws.append_row([task_id, title, description, priority, assigned_to, created_by,
-                   datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                   date.today().strftime("%Y-%m-%d"), "Open", "", "", ""])
+                   "'" + _now_ist(),
+                   "'" + date.today().strftime("%Y-%m-%d"), "Open", "", "", ""],
+                  value_input_option="RAW")
     load_tasks.clear()
     return task_id
 
@@ -353,7 +361,7 @@ def close_task(task_id, closed_by, notes=""):
             sheet_row = i + 2
             ws.update_cell(sheet_row, 9,  "Closed")
             ws.update_cell(sheet_row, 10, closed_by)
-            ws.update_cell(sheet_row, 11, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            ws.update_cell(sheet_row, 11, "'" + _now_ist())
             ws.update_cell(sheet_row, 12, notes)
             load_tasks.clear()
             return True
@@ -439,7 +447,7 @@ def _get_users_ws():
 
 def _do_seed(ws):
     from utils.config import USERS as D
-    now  = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now  = _now_ist()
     rows = [[k, v["password"], v["role"], ",".join(v.get("otas",[])), "active", now]
             for k, v in D.items()]
     if rows:
@@ -496,9 +504,9 @@ def add_user_sheet(username: str, password: str, role: str, otas: list, email: s
     ws.append_row([
         username.strip().lower(), password, role,
         ",".join(otas), "active",
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "'" + _now_ist(),
         email.strip(),
-    ])
+    ], value_input_option="RAW")
     load_users_sheet.clear()
     return True
 
