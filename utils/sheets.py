@@ -242,16 +242,22 @@ def _ensure_audit_sheet():
         return ss.worksheet(AUDIT_SHEET_NAME)
     except Exception:
         ws = ss.add_worksheet(title=AUDIT_SHEET_NAME, rows=10000, cols=10)
-        ws.append_row(["Timestamp","Username","FH ID","Property Name","OTA","Column","Old Value","New Value","Action","Notes"])
+        ws.append_row(["Timestamp","Username","FH ID","Property Name","OTA","Column","Old Value","New Value","Remarks"])
         return ws
 
 
 def write_audit_log(username, fh_id, prop_name, ota, col, old_val, new_val):
     ws = _ensure_audit_sheet()
     ws.append_row([
-        "'" + _now_ist(),   # leading apostrophe forces plain text in Sheets
-        username, fh_id, prop_name, ota, col,
-        str(old_val), str(new_val), "Update", ""
+        "'" + _now_ist(),   # A: Timestamp — leading apostrophe forces plain text in Sheets
+        username,           # B: Username
+        fh_id,              # C: FH ID
+        prop_name,          # D: Property Name
+        ota,                # E: OTA
+        col,                # F: Column
+        str(old_val),       # G: Old Value
+        str(new_val),       # H: New Value
+        "Update",           # I: Remarks
     ], value_input_option="RAW")
 
 
