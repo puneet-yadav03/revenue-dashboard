@@ -1,6 +1,6 @@
 # Revenue Audit Dashboard — Redesigned UI
 
-A full redesign of the FabHotels Revenue Audit Dashboard matching the Figma specifications.
+A FabHotels Revenue Audit Dashboard for complete team working and reduce errors
 
 ## 🎨 Design Changes
 - **New sidebar** with collapsible nav groups (Property View, Analytics), icons, active state highlight
